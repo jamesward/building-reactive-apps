@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
 
-    <title>Architecting Event-Driven Web, Mobile, and RESTful Apps</title>
+    <title>Reactive Apps</title>
 
     <meta name="description" content="Non-blocking, asynchronous, and reactive are all the rage today. This session will explore why the patterns are important in modern apps and how to apply them to event-driven web, mobile, and RESTful apps. To illustrate the concepts, Java, Scala, Akka, and Play Framework will be used as examples.">
     <meta name="author" content="James Ward">
@@ -46,107 +46,167 @@
     <a href="http://twitter.com/_JamesWard"  style="font-size: 20px;">@_JamesWard</a>
 </aside>
 
-
 <div class="slides">
-
-<section>
-    <h2>Architecting Event-Driven Web,<br/>Mobile, and RESTful Apps</h2>
-    <h3><a href="http://www.jamesward.com">James Ward</a></h3>
-</section>
-
-<section>
-    <h2>Event-Driven Web Architecture</h2>
-    <iframe src="http://prezi.com/embed/0oqnmj__vzjh/?bgcolor=ffffff&amp;lock_to_path=1&amp;autoplay=no&amp;autohide_ctrls=0" width="550" height="400" frameBorder="0"></iframe>
-</section>
-
-<section>
-    <h2>Event-Driven Use Cases</h2>
-    <ul>
-        <li class="fragment">Compositional</li>
-        <li class="fragment">Non-Blocking</li>
-        <li class="fragment">Real-Time</li>
-    </ul>
-</section>
-
-<section>
+    
     <section>
-        <h2>Scala</h2>
-        <h4>The Modern JVM Language</h4>
-        <ul>
-            <li class="fragment">Type-safe, Functional & Object Oriented</li>
-            <li class="fragment">Interop with Java Libraries</li>
-            <li class="fragment">Concise expressions for complex behavior</li>
-            <li class="fragment">Built-in library for handling concurrency & asynchronous tasks</li>
-        </ul>
+        <h2>Building Reactive Apps</h2>
+        <p>
+            <small><a href="http://www.jamesward.com">James Ward</a> ~ <a href="http://twitter.com/_jamesward">@_JamesWard</a></small>
+        </p>
+    </section>
+    
+    <section data-markdown>
+        <script type="text/template">
+            ## Going Reactive
+            ### www.ReactiveManifesto.org
+
+            <img src="assets/full-reactive.png" style="background-color: #ffffff">
+        </script>
+    </section>
+    <section data-markdown>
+        <script type="text/template">
+            ## Async + Non-Blocking
+            ### Scalability with Event-Driven Thread Usage
+
+            * Reactive Requests
+            * Reactive Composition
+            * Reactive Push
+            * 2-Way Reactive
+        </script>
     </section>
     <section>
-        <h2>Basic App</h2>
-        <pre><code>object Hello extends App {
-  println("hello, world")
-}</code></pre>
+        <h2>Reactive Requests</h2>
+        <img src="assets/reactive-requests.png">
     </section>
-    <section>
-        <h2>Case Classes</h2>
-        <pre><code>
-case class Greeting(name: String) {
-  def sayHello = "hello, " + name
-}
+    <section data-markdown>
+        <script type="text/template">
+            ### Blocking Request
 
-object Hello extends App {
-  val greeting = Greeting("James")
-  println(greeting.sayHello)
-}
-</code></pre>
+                def foo = Action {
+                  Ok("foo")
+                }
+
+            ### Async Request
+
+                def foo = Action.async {
+                    Future.successful(Ok("foo"))
+                }
+        </script>
     </section>
-    <section>
-        <h2>Futures</h2>
-        <p>Built-in Multi-Threading</p>
-        <pre><code>import scala.concurrent._
-import ExecutionContext.Implicits.global
+    <section data-markdown>
+        <script type="text/template">
+            ### Reactive Request (Async + Non-Blocking)
 
-def pause(msg: String, duration: Int) = {
-  println(s"pausing for $duration seconds")
-  Thread.sleep(1000 * duration)
-  println(s"paused for $duration seconds")
-  msg
-}
+                def pause(duration: Int) = Action.async {
+                  Promise.timeout(Ok(duration.toString), duration seconds)
+                }
 
-val aa: Future[String] = future { pause("three", 3) }
-val bb: Future[String] = future { pause("one", 1) }
-val cc: Future[String] = future { pause("two", 2) }
+            ### Reactive WS Client
 
-println(Await.result(aa, duration.Duration.Inf))
-println(Await.result(bb, duration.Duration.Inf))
-println(Await.result(cc, duration.Duration.Inf))</code></pre>
+                val f: Future[Response] = WS.url("http://www.foo.com").get
+        </script>
     </section>
-    <section>
-        <h2>For Comprehensions</h2>
-        <p></p>
-        <pre><code>for {
-  j <- 1 to 3
-  k <- j to 3
-} yield k</code></pre>
+    <section data-markdown>
+        <script type="text/template">
+            ### Reactive Composition
+
+                def foo = Action.async {
+                  val futureResponse = WS.url("http://www.foo.com").get
+                  futureResponse.map { response =>
+                    Ok(response.body)
+                  }
+                }
+        </script>
     </section>
-</section>
+    <section data-markdown>
+        <script type="text/template">
+            ### Reactive Composition
 
-<section>
-    <h2>Play Framework</h2>
-    <h4>The High Velocity Web Framework For Java and Scala</h4>
-    <ul>
-        <li class="fragment">"Just Hit Refresh" Workflow</li>
-        <li class="fragment">Scalable: Asynchronous, Non-Blocking, & Real-time</li>
-        <li class="fragment">Modern Web: REST + JSON & Asset Compilers</li>
-    </ul>
-</section>
+                def foo = Action.async {
+                  val futureJW = WS.url("http://www.jamesward.com").get
+                  val futureTwitter = WS.url("http://www.twitter.com").get
+                  for {
+                    jw <- futureJW
+                    twitter <- futureTwitter
+                  } yield Ok(jw.response.body + twitter.response.body)
+                }
+        </script>
+    </section>
+    <section data-markdown>
+        <script type="text/template">
+            ### Reactive Push with SSE
 
-<section>
-    <h2>Techniques</h2>
-    <ul>
-        <li class="fragment">Async</li>
-        <li class="fragment">Reactive = Async + Non-Blocking</li>
-        <li class="fragment">Messaging: Comet, SSE, WebSockets</li>
-    </ul>
-</section>
+            Server-side:
+                    
+                def events = Action {
+                  val (enumerator, channel) = Concurrent.broadcast[String]
+
+                  Promise.timeout(channel.push("hello"), 1.second)
+    
+                  Ok.feed(enumerator &> EventSource()).as(EVENT_STREAM)
+                }
+
+            Client-side:
+
+                $ ->
+                  events = new EventSource("/events")
+                  events.onmessage = (e) ->
+                    console.log(e.data)
+        </script>
+    </section>
+    <section data-markdown>
+        <script type="text/template">
+            ### 2-Way Reactive with WebSockets
+
+            Server-side:
+                    
+                def echoWs = WebSocket.using[String] { request =>
+                  val (enumerator, channel) = Concurrent.broadcast[String]
+                  val in = Iteratee.foreach[String](channel.push)
+                  (in, enumerator)
+                }
+    
+            Client-side:
+                
+                $ ->
+                  ws = new WebSocket("ws://localhost:9000/echo")
+                  ws.onopen = () ->
+                    ws.send("foo")
+                  ws.onmessage = (message) ->
+                    console.log(message.data)
+        </script>
+    </section>
+    <section data-markdown>
+        <script type="text/template">
+            ### Resilient Futures
+
+                future.recover {
+                  case Exception =>
+                    Logger.error("Failed!")
+                    InternalServerError("Boum!")
+                }
+        </script>
+    </section>
+    <section data-markdown>
+        <script type="text/template">
+            ### Actors: Better Scalability & Resilience
+
+            <img src="assets/akka-actors.png" style="background-color: #ffffff; width: 700px;">
+            
+            * Event-Driven
+            * Non-request based lifecycle
+            * Managed Concurrency
+            * Isolated Failure Handling (Supervision)
+            * Scales up & out
+        </script>
+    </section>
+    <section data-markdown>
+        <script type="text/template">
+            ### Demo: Reactive Stocks
+
+            [http://typesafe.com/activator/template/reactive-stocks](http://typesafe.com/activator/template/reactive-stocks)
+        </script>
+    </section>
 </div>
 </div>
 
