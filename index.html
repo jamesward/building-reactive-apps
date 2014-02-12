@@ -1,243 +1,399 @@
 <!doctype html>
 <html lang="en">
 
-<head>
-    <meta charset="utf-8">
+	<head>
+		<meta charset="utf-8">
 
-    <title>Reactive Apps</title>
+		<title>Intro to Play Framework</title>
 
-    <meta name="description" content="Non-blocking, asynchronous, and reactive are all the rage today. This session will explore why the patterns are important in modern apps and how to apply them to event-driven web, mobile, and RESTful apps. To illustrate the concepts, Java, Scala, Akka, and Play Framework will be used as examples.">
-    <meta name="author" content="James Ward">
+		<meta name="description" content="Play Framework is the High Velocity Web Framework For Java and Scala. It is lightweight, stateless, RESTful, and developer friendly. This is an introduction to building web applications with Play. You will learn about: routing, Scala controllers & templates, database access, asset compilation for LESS & CoffeeScript, and JSON services.">
+		<meta name="author" content="James Ward">
 
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <link rel="stylesheet" href="css/reveal.min.css">
-    <link rel="stylesheet" href="css/theme/default.css" id="theme">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <!-- For syntax highlighting -->
-    <link rel="stylesheet" href="lib/css/zenburn.css">
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
 
-    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
-    <script>
-        document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
-    </script>
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
 
-    <!--[if lt IE 9]>
-    <script src="lib/js/html5shiv.js"></script>
-    <![endif]-->
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
 
-    <style type="text/css">
-    .reveal .controls {
-        bottom: auto;
-        top: 0px;
-    }
-    </style>
-</head>
-<body>
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+        
+        <style type="text/css">
+            .reveal .controls {
+                bottom: auto;
+                top: 0px;
+            }
+        </style>
 
-<div class="reveal">
+	</head>
 
-<aside style="display: block; position: fixed; bottom: 5px; left: 10px; z-index: 30;">
-    <a href="http://typesafe.com"><img src="assets/logo.png"></a>
-</aside>
-
-<aside style="display: block; position: fixed; bottom: 10px; right: 10px; z-index: 30;">
-    <a href="http://twitter.com/_JamesWard"  style="font-size: 20px;">@_JamesWard</a>
-</aside>
-
-<div class="slides">
+	<body>
     
-    <section>
-        <h2>Building Reactive Apps</h2>
-        <p>
-            <small><a href="http://www.jamesward.com">James Ward</a> ~ <a href="http://twitter.com/_jamesward">@_JamesWard</a></small>
-        </p>
-    </section>
-    
-    <section data-markdown>
-        <script type="text/template">
-            ## Going Reactive
-            ### www.ReactiveManifesto.org
+        <aside style="display: block; position: fixed; bottom: 5px; left: 10px; z-index: 30;">
+            <a href="http://typesafe.com"><img src="assets/logo.png"></a>
+        </aside>
 
-            <img src="assets/full-reactive.png" style="background-color: #ffffff">
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ## Async + Non-Blocking
-            ### Scalability with Event-Driven Thread Usage
+        <aside style="display: block; position: fixed; bottom: 10px; right: 10px; z-index: 30;">
+            <a href="https://twitter.com/_JamesWard" class="twitter-follow-button" data-show-count="false" data-lang="en" data-size="large">Follow @_JamesWard</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        </aside>
 
-            * Reactive Requests
-            * Reactive Composition
-            * Reactive Push
-            * 2-Way Reactive
-        </script>
-    </section>
-    <section>
-        <h2>Reactive Requests</h2>
-        <img src="assets/reactive-requests.png">
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Blocking Request
+		<div class="reveal">
 
-                def foo = Action {
-                  Ok("foo")
-                }
-
-            ### Async Request
-
-                def foo = Action.async {
-                    Future.successful(Ok("foo"))
-                }
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Reactive Request (Async + Non-Blocking)
-
-                def pause(duration: Int) = Action.async {
-                  Promise.timeout(Ok(duration.toString), duration seconds)
-                }
-
-            ### Reactive WS Client
-
-                val f: Future[Response] = WS.url("http://www.foo.com").get
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Reactive Composition
-
-                def foo = Action.async {
-                  val futureResponse = WS.url("http://www.foo.com").get
-                  futureResponse.map { response =>
-                    Ok(response.body)
-                  }
-                }
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Reactive Composition
-
-                def foo = Action.async {
-                  val futureJW = WS.url("http://www.jamesward.com").get
-                  val futureTwitter = WS.url("http://www.twitter.com").get
-                  for {
-                    jw <- futureJW
-                    twitter <- futureTwitter
-                  } yield Ok(jw.response.body + twitter.response.body)
-                }
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Reactive Push with SSE
-
-            Server-side:
-                    
-                def events = Action {
-                  val (enumerator, channel) = Concurrent.broadcast[String]
-
-                  Promise.timeout(channel.push("hello"), 1.second)
-    
-                  Ok.feed(enumerator &> EventSource()).as(EVENT_STREAM)
-                }
-
-            Client-side:
-
-                $ ->
-                  events = new EventSource("/events")
-                  events.onmessage = (e) ->
-                    console.log(e.data)
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### 2-Way Reactive with WebSockets
-
-            Server-side:
-                    
-                def echoWs = WebSocket.using[String] { request =>
-                  val (enumerator, channel) = Concurrent.broadcast[String]
-                  val in = Iteratee.foreach[String](channel.push)
-                  (in, enumerator)
-                }
-    
-            Client-side:
-                
-                $ ->
-                  ws = new WebSocket("ws://localhost:9000/echo")
-                  ws.onopen = () ->
-                    ws.send("foo")
-                  ws.onmessage = (message) ->
-                    console.log(message.data)
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Resilient Futures
-
-                future.recover {
-                  case Exception =>
-                    Logger.error("Failed!")
-                    InternalServerError("Boum!")
-                }
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Actors: Better Scalability & Resilience
-
-            <img src="assets/akka-actors.png" style="background-color: #ffffff; width: 700px;">
+			<div class="slides">
             
-            * Event-Driven
-            * Non-request based lifecycle
-            * Managed Concurrency
-            * Isolated Failure Handling (Supervision)
-            * Scales up & out
-        </script>
-    </section>
-    <section data-markdown>
-        <script type="text/template">
-            ### Demo: Reactive Stocks
+                <section>
+                    <h2>Building Reactive Apps</h2>
+                    <p>
+                        <small><a href="http://www.jamesward.com">James Ward</a> ~ <a href="http://twitter.com/_jamesward">@_JamesWard</a></small>
+                    </p>
+                </section>
+                
+                <section>
+                    <section>
+                        <h2>Users Want</h2>
+                        <ul>
+                            <li class="fragment">In-Sync Data</li>
+                            <li class="fragment">Real-time Collaboration</li>
+                            <li class="fragment">Instant Feedback</li>
+                            <li class="fragment">To Not Wait</li>
+                        </ul>
+                    </section>
+                    <section data-markdown>
+                        <script type="text/template">
+                            ## Users Want Reactive Apps
+                            ### www.ReactiveManifesto.org
+                
+                            <img src="assets/full-reactive.png" style="background-color: #ffffff">
+                        </script>
+                    </section>
+                </section>
+                
+                <section>
+                    <section>
+                        <h2>Reactive Web Apps</h2>
+                        <h3>Async + Non-Blocking</h3>
+            
+                        <ul>
+                            <li>Reactive Requests</li>
+                            <li>Reactive Composition</li>
+                            <li>Reactive Push</li>
+                            <li>2-Way Reactive</li>
+                        </ul>
+                    </section>
+                    
+                    <section>
+                        <h2>Reactive Requests</h2>
+                        <img src="assets/reactive-requests.png">
+                        <br/>
+                        Jump to: <a href="#/2/11">Java Code</a> | <a href="#/2/4">Scala Code</a>
+                    </section>
+            
+                    <section>
+                        <h3>Scala Code Examples</h3>
+                    </section>
+                        
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Blocking Request
+                
+                                def foo = Action {
+                                  Ok("foo")
+                                }
+                
+                            ### Async Request
+                
+                                def foo = Action.async {
+                                    Future.successful(Ok("foo"))
+                                }
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Request (Async + Non-Blocking)
+                
+                                def pause(duration: Int) = Action.async {
+                                  Promise.timeout(Ok(duration.toString), duration seconds)
+                                }
+                
+                            ### Reactive WS Client
+                
+                                val f: Future[Response] = WS.url("http://www.foo.com").get
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Composition
+                
+                                def foo = Action.async {
+                                  val futureResponse = WS.url("http://www.foo.com").get
+                                  futureResponse.map { response =>
+                                    Ok(response.body)
+                                  }
+                                }
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Composition
+                
+                                def foo = Action.async {
+                                  val futureJW = WS.url("http://www.jamesward.com").get
+                                  val futureTwitter = WS.url("http://www.twitter.com").get
+                                  for {
+                                    jw <- futureJW
+                                    twitter <- futureTwitter
+                                  } yield Ok(jw.response.body + twitter.response.body)
+                                }
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Push with SSE
+                
+                            Server-side:
+                                    
+                                def events = Action {
+                                  val (enumerator, channel) = Concurrent.broadcast[String]
+                
+                                  Promise.timeout(channel.push("hello"), 1.second)
+                    
+                                  Ok.feed(enumerator &> EventSource()).as(EVENT_STREAM)
+                                }
+                
+                            Client-side:
+                
+                                $ ->
+                                  events = new EventSource("/events")
+                                  events.onmessage = (e) ->
+                                    console.log(e.data)
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### 2-Way Reactive with WebSockets
+                
+                            Server-side:
+                                    
+                                def echoWs = WebSocket.using[String] { request =>
+                                  val (enumerator, channel) = Concurrent.broadcast[String]
+                                  val in = Iteratee.foreach[String](channel.push)
+                                  (in, enumerator)
+                                }
+                    
+                            Client-side:
+                                
+                                $ ->
+                                  ws = new WebSocket("ws://localhost:9000/echo")
+                                  ws.onopen = () ->
+                                    ws.send("foo")
+                                  ws.onmessage = (message) ->
+                                    console.log(message.data)
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Resilient Futures
+                
+                                future.recover {
+                                  case Exception =>
+                                    Logger.error("Failed!")
+                                    InternalServerError("Boum!")
+                                }
+                        </script>
+                    </section>
+                    
+                    <section>
+                        <h3>Java Code Examples</h3>
+                    </section>
+            
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Blocking Request
+            
+                                public static Result index() {
+                                    return ok(views.html.index.render("hello"));
+                                }
+            
+                            ### Async Request
+            
+                                public static F.Promise<Result> index() {
+                                    return F.Promise.promise(new F.Function0<Result>() {
+                                        public Result apply() {
+                                            return ok(views.html.index.render("hello"));
+                                        }
+                                    });
+                                }
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Request (Async + Non-Blocking)
+            
+                                public static F.Promise<Result> index() {
+                                    return F.Promise.delayed(new F.Function0<Result>() {
+                                        public Result apply() throws Throwable {
+                                            return ok(views.html.index.render("hello"));
+                                        }
+                                    }, 5, TimeUnit.SECONDS);
+                                }
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Requests
+            
+                                public static F.Promise<Result> index() {
+                                    F.Promise<WS.Response> jw = WS.url("http://www.jamesward.com").get();
+                                    return jw.map(new F.Function<WS.Response, Result>() {
+                                        public Result apply(WS.Response response) throws Throwable {
+                                            return ok(response.getBody());
+                                        }
+                                    });
+                                }
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Composition
+            
+                                public static F.Promise<Result> index() {
+                                    final F.Promise<WS.Response> jw = WS.url("http://www.jamesward.com").get();
+                                    final F.Promise<WS.Response> tw = WS.url("http://www.twitter.com").get();
+                                    return jw.flatMap(new F.Function<WS.Response, F.Promise<Result>>() {
+                                        public F.Promise<Result> apply(final WS.Response jwR) throws Throwable {
+                                            return tw.map(new F.Function<WS.Response, Result>() {
+                                                public Result apply(WS.Response twR) throws Throwable {
+                                                    return ok(twR.getBody() + jwR.getBody());
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Push with SSE
+            
+                                public static Result events() {
+                                    EventSource eventSource = new EventSource() {
+                                        public void onConnected() {
+                                            sendData("hello");
+                                        }
+                                    };
+                                    return ok(eventSource);
+                                }
+                
+                                $ ->
+                                  events = new EventSource("/events")
+                                  events.onmessage = (e) ->
+                                    console.log(e.data)
+                        </script>
+                    </section>
+                    
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### 2-Way Reactive with WebSockets
+            
+                                public static WebSocket<String> echo() {
+                                    return new WebSocket<String>() {
+                                        public void onReady(final In<String> in, final Out<String> out) {
+                                            in.onMessage(new F.Callback<String>() {
+                                                public void invoke(String message) throws Throwable {
+                                                    out.write(message);
+                                                }
+                                            });
+                                        }
+                                    };
+                                }
+            
+                                $ ->
+                                  ws = new WebSocket("ws://localhost:9000/echo")
+                                  ws.onopen = () ->
+                                    ws.send("foo")
+                                  ws.onmessage = (message) ->
+                                    console.log(message.data)
+                        </script>
+                    </section>
+                    
+                </section>
+                
+                <section data-markdown>
+                    <script type="text/template">
+                        ### Akka - Actor-based Concurrency & Clustering
+            
+                        <img src="assets/akka-actors.png" style="background-color: #ffffff; width: 700px;">
+                        
+                        * Event-Driven
+                        * Non-request based lifecycle
+                        * Managed Concurrency
+                        * Isolated Failure Handling (Supervision)
+                        * Scales up & out
+                    </script>
+                </section>
+                
+                <section data-markdown>
+                    <script type="text/template">
+                        ### Demo: Reactive Stocks
+            
+                        [http://typesafe.com/activator/template/reactive-stocks](http://typesafe.com/activator/template/reactive-stocks)
+                    </script>
+                </section>
 
-            [http://typesafe.com/activator/template/reactive-stocks](http://typesafe.com/activator/template/reactive-stocks)
-        </script>
-    </section>
-</div>
-</div>
+			</div>
 
-<script src="lib/js/head.min.js"></script>
-<script src="js/reveal.min.js"></script>
+		</div>
 
-<script>
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
 
-    // Full list of configuration options available here:
-    // https://github.com/hakimel/reveal.js#configuration
-    Reveal.initialize({
-        controls: true,
-        progress: true,
-        history: true,
-        center: false,
-        rollingLinks: false,
-        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
-        // Optional libraries used to extend on reveal.js
-        dependencies: [
-            { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
-            { src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-            { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-            { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-            { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-            { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
-            // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
-        ]
-    });
+		<script>
 
-</script>
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
 
-</body>
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
 </html>
