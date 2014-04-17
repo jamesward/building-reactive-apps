@@ -81,8 +81,18 @@
                 </section>
                 
                 <section>
+                    <h2>Going Reactive</h2>
+                    
+                    <ul>
+                        <li>Reactive Web</li>
+                        <li>Reactive Actors</li>
+                        <li>Reactive Streams</li>
+                    </ul>
+                </section>
+                
+                <section>
                     <section>
-                        <h2>Reactive Web Apps</h2>
+                        <h2>Reactive Web</h2>
                         <h3>Async + Non-Blocking</h3>
             
                         <ul>
@@ -97,7 +107,7 @@
                         <h2>Reactive Requests</h2>
                         <img src="assets/reactive-requests.png">
                         <br/>
-                        Jump to: <a href="#/2/11">Java Code</a> | <a href="#/2/4">Scala Code</a>
+                        Jump to: <a href="#/3/11">Java Code</a> | <a href="#/3/18">Java 8 Code</a> | <a href="#/3/4">Scala Code</a>
                     </section>
             
                     <section>
@@ -337,28 +347,163 @@
                                     console.log(message.data)
                         </script>
                     </section>
-                    
+
+                    <section>
+                        <h3>Java 8 Code Examples</h3>
+                    </section>
+
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Blocking Request
+
+                                public static Result index() {
+                                    return ok("foo");
+                                }
+
+                            ### Async Request
+
+                                public static F.Promise<Result> foo() {
+                                    return F.Promise.promise(() -> ok("foo"));
+                                }
+                        </script>
+                    </section>
+
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Request (Async + Non-Blocking)
+
+                                public static F.Promise<Result> foo() {
+                                    return F.Promise.delayed(() -> ok("foo"), 5, TimeUnit.SECONDS);
+                                }
+                        </script>
+                    </section>
+
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Requests
+
+                                public static F.Promise<Result> foo() {
+                                    F.Promise<WS.Response> jw = WS.url("http://www.jamesward.com").get();
+                                    return jw.map(response -> ok(response.getBody()));
+                                }
+                        </script>
+                    </section>
+
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Composition
+
+                                public static F.Promise<Result> foo() {
+                                    F.Promise<WS.Response> jw = WS.url("http://www.jamesward.com").get();
+                                    F.Promise<WS.Response> tw = WS.url("http://www.twitter.com").get();
+                                    return jw.flatMap(jwr ->
+                                        tw.map(twr ->
+                                            ok(twr.getBody() + jwr.getBody())));
+                                }
+                        </script>
+                    </section>
+
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Reactive Push with SSE
+
+                                public static Result events() {
+                                    EventSource eventSource = new EventSource() {
+                                        public void onConnected() {
+                                            sendData("hello");
+                                        }
+                                    };
+                                    return ok(eventSource);
+                                }
+
+                                $ ->
+                                  events = new EventSource("/events")
+                                  events.onmessage = (e) ->
+                                    console.log(e.data)
+                        </script>
+                    </section>
+
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### 2-Way Reactive with WebSockets
+
+                                public static WebSocket<String> echo() {
+                                    return new WebSocket<String>() {
+                                        public void onReady(final In<String> in, final Out<String> out) {
+                                            in.onMessage(out::write);
+                                        }
+                                    };
+                                }
+
+                                $ ->
+                                  ws = new WebSocket("ws://localhost:9000/echo")
+                                  ws.onopen = () ->
+                                    ws.send("foo")
+                                  ws.onmessage = (message) ->
+                                    console.log(message.data)
+                        </script>
+                    </section>
+                </section>
+                
+                <section>
+                    <section>
+                        <h2>Reactive Actors</h2>
+                        <small>Event-Driven Workers</small>
+
+                        <p><img src="assets/akka-actors.png" style="background-color: #ffffff; width: 700px;"></p>
+
+                        <ul>
+                            <li>Managed Concurrency</li>
+                            <li>Isolated Failure Handling (Supervision)</li>
+                            <li>Scales up & out</li>
+                        </ul>
+                    </section>
+
+                    <section data-markdown>
+                        <script type="text/template">
+                            ### Actors & Requests
+
+                                public class FooActor extends UntypedActor {
+                                    @Override
+                                    public void onReceive(Object message) throws Exception {
+                                        F.Promise<WS.Response> jw = WS.url("http://www.jamesward.com").get();
+                                        Patterns.pipe(jw.wrapped(), getContext().dispatcher()).to(getSender());
+                                    }
+                                }
+
+                                public static F.Promise<Result> foo() {
+                                    ActorRef fooActor = Akka.system().actorOf(Props.create(FooActor.class));
+
+                                    F.Promise<Object> p = F.Promise.wrap(Patterns.ask(fooActor, "foo", 5000));
+
+                                    return p.map(r -> ok(((WS.Response) r).getBody()));
+                                }
+                        </script>
+                    </section>
+                </section>
+
+                <section>
+                    <h2>Reactive Streams</h2>
+
+                    <small>A JVM standard for asynchronous stream processing with non-blocking back pressure</small>
+
+                    <img src="assets/reactive-streams.png" style="width: 700px;">
+
+                    <p><a href="http://www.reactive-streams.org/">www.reactive-streams.org</a></p>
                 </section>
                 
                 <section data-markdown>
                     <script type="text/template">
-                        ### Akka - Actor-based Concurrency & Clustering
+                        ## Get Started
             
-                        <img src="assets/akka-actors.png" style="background-color: #ffffff; width: 700px;">
-                        
-                        * Event-Driven
-                        * Non-request based lifecycle
-                        * Managed Concurrency
-                        * Isolated Failure Handling (Supervision)
-                        * Scales up & out
-                    </script>
-                </section>
-                
-                <section data-markdown>
-                    <script type="text/template">
-                        ### Demo: Reactive Stocks
-            
-                        [http://typesafe.com/activator/template/reactive-stocks](http://typesafe.com/activator/template/reactive-stocks)
+                        [Typesafe Activator Templates](http://typesafe.com/activator/templates)
+                                
+                        * [Reactive Stocks](http://typesafe.com/activator/template/reactive-stocks)
+                        * [Reactive Stocks (Java 8)](https://typesafe.com/activator/template/reactive-stocks-java8)
+                        * [Reactive Maps](http://typesafe.com/activator/template/reactive-maps)
+                        * [Akka Streams](http://typesafe.com/activator/template/akka-stream-scala)
+                        * [Reactive with Java 8 & Play Framework](https://typesafe.com/activator/template/reactive-java8-play)
+                        * [Hello Akka (Java 8)](https://typesafe.com/activator/template/hello-akka-java8)
                     </script>
                 </section>
 
